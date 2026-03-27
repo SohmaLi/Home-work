@@ -1,15 +1,51 @@
 "use client";
 
-import React from "react";
-import { Layout, Menu } from "antd";
-import {
-  MessageOutlined,
-  BookOutlined,
-} from "@ant-design/icons";
+import React, { useState } from "react";
+import { Layout, Menu, Button, message } from "antd";
+import { MessageOutlined, BookOutlined, LogoutOutlined } from "@ant-design/icons";
+import { useRouter, usePathname } from "next/navigation";
+import { createClient } from "@/utils/supabase/client";
 
 const { Sider } = Layout;
 
-export default function Sidebar() {
+interface SidebarProps {
+  activeKey?: string;
+}
+
+const MENU_ROUTES: Record<string, string> = {
+  "1": "/co-minh",
+  "2": "/co-lanh",
+};
+
+export default function Sidebar({ activeKey }: SidebarProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const supabase = createClient();
+  const [loadingOut, setLoadingOut] = useState(false);
+
+  // Tự detect activeKey từ pathname nếu không truyền vào
+  const selectedKey =
+    activeKey ??
+    (pathname.startsWith("/co-lanh") ? "2" : "1");
+
+  const handleMenuClick = ({ key }: { key: string }) => {
+    const route = MENU_ROUTES[key];
+    if (route) router.push(route);
+  };
+
+  const handleLogout = async () => {
+    setLoadingOut(true);
+    const { error } = await supabase.auth.signOut();
+    setLoadingOut(false);
+    
+    if (error) {
+      message.error("Lỗi đăng xuất: " + error.message);
+    } else {
+      router.push("/login");
+      router.refresh();
+    }
+  };
+
   return (
     <Sider
       width={250}
@@ -44,7 +80,8 @@ export default function Sidebar() {
       {/* Navigation */}
       <Menu
         mode="inline"
-        defaultSelectedKeys={["1"]}
+        selectedKeys={[selectedKey]}
+        onClick={handleMenuClick}
         style={{ borderRight: 0 }}
         items={[
           {
@@ -55,12 +92,35 @@ export default function Sidebar() {
           {
             key: "2",
             icon: <BookOutlined />,
-            label: "Bài tập 2 (Coming soon)",
-            disabled: true,
+            label: "Từ Điển Cô Lành",
           },
         ]}
       />
 
+      {/* Logout Footer */}
+      <div
+        style={{
+          position: "absolute",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          padding: 16,
+          borderTop: "1px solid #f0f0f0",
+          backgroundColor: "#fff",
+        }}
+      >
+        <Button
+          type="text"
+          danger
+          icon={<LogoutOutlined />}
+          block
+          loading={loadingOut}
+          onClick={handleLogout}
+          style={{ textAlign: "left", paddingLeft: 12 }}
+        >
+          Đăng xuất
+        </Button>
+      </div>
     </Sider>
   );
 }
