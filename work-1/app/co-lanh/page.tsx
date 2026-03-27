@@ -29,7 +29,11 @@ interface WordResult {
   phonetic: string;
   meaning: string;
   example: string;
-  grammar_notes: string[];
+  example_translation: string;
+  grammar_notes: {
+    topic: string;
+    description: string;
+  }[];
   level: "Dễ" | "Trung bình" | "Khó";
 }
 
@@ -234,9 +238,14 @@ export default function CoLanhPage() {
                   <Text>{result.meaning}</Text>
                 </Descriptions.Item>
                 <Descriptions.Item label="💬 Ví dụ">
-                  <Text italic style={{ color: "#595959" }}>
-                    {highlightWord(result.example, result.word)}
-                  </Text>
+                  <div>
+                    <Text italic style={{ color: "#595959", display: "block", marginBottom: 4 }}>
+                      {highlightWord(result.example, result.word)}
+                    </Text>
+                    <Text type="secondary" style={{ fontSize: 13 }}>
+                      {result.example_translation}
+                    </Text>
+                  </div>
                 </Descriptions.Item>
               </Descriptions>
 
@@ -259,12 +268,12 @@ export default function CoLanhPage() {
                           marginBottom: 4,
                         }}
                       >
-                        <Text>
+                        <div>
                           <Text strong style={{ color: "#1677ff", marginRight: 8 }}>
-                            {index + 1}.
+                            {index + 1}. {note.topic}:
                           </Text>
-                          {note}
-                        </Text>
+                          <Text>{note.description}</Text>
+                        </div>
                       </List.Item>
                     )}
                     bordered={false}
